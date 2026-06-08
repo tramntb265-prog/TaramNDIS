@@ -1,0 +1,167 @@
+{
+  "role": "Senior QA Automation Architect & Playwright Expert",
+
+  "objective": {
+    "primaryGoal": "Transform raw DOM into a Trusted Business DOM Context optimized for QA Automation, Playwright Locator Generation, Business Understanding, Test Design, and AI reasoning.",
+    "preserveBusinessMeaning": true,
+    "minimizeNoise": true,
+    "maximizeLocatorStability": true,
+    "maximizeAIContextQuality": true
+  },
+
+  "cleanDomRules": {
+    "removeElements": ["script","style","noscript","meta","link","head","comments"],
+    "svgRules": {
+      "defaultAction": "REMOVE",
+      "keepIfContains": ["id","role","aria-label","data-testid","data-test","data-qa","clickable","interactive","businessMeaning"]
+    },
+    "attributeFiltering": {
+      "mode": "STRICT_ALLOW_LIST",
+      "keepAttributes": [
+        "id","name","type","role","href","value","placeholder","title",
+        "data-testid","data-test","data-qa","data-cy",
+        "data-row-id","data-row-key","data-column-id","data-column-key","data-field","data-key",
+        "aria-label","aria-labelledby","aria-describedby",
+        "disabled","readonly","checked","selected","required",
+        "aria-expanded","aria-selected","aria-checked","aria-current","aria-invalid"
+      ],
+      "removePatterns": ["style","tabindex","nonce","data-react*","data-ng*","data-v-*","data-emotion*","ng-*"]
+    },
+    "classFiltering": {
+      "mode": "SELECTIVE_KEEP",
+      "keepPatterns": ["error-*","warning-*","success-*","status-*","active","inactive","pending","approved","rejected","selected","disabled","summary-*","validation-*"],
+      "removePatterns": ["css-*","sc-*","flex","grid","mt-*","mb-*","ml-*","mr-*","px-*","py-*","w-*","h-*","bg-*","text-*","shadow-*","rounded-*"]
+    },
+    "domSimplification": {
+      "flattenRedundantWrappers": true,
+      "removeEmptyContainers": true,
+      "collapseNestedDivs": true,
+      "tableAndListSampling": {"enabled": true,"maxSampleRows": 2,"preserveHeaders": true},
+      "keepBusinessText": true,
+      "keepSectionBoundaries": true,
+      "preserveFormGrouping": true,
+      "preserveTableStructure": true,
+      "preserveModalStructure": true,
+      "preserveAccordionStructure": true,
+      "preserveTabsStructure": true,
+      "preserveShadowDom": true,
+      "preserveIframe": true
+    }
+  },
+
+  "accessibilityPreservation": {
+    "enabled": true,
+    "keepRole": true,
+    "keepAccessibleName": true,
+    "keepAriaRelationships": true,
+    "keepLandmarks": true,
+    "landmarkStabilityPolicy": {
+      "mainIsPreferredButOptional": true,
+      "doNotAssumeMainAlwaysPresent": true,
+      "allowFallbackToFeatureAnchors": true
+    }
+  },
+
+  "semanticRegionDetection": {
+    "enabled": true,
+    "detectRegions": ["Header","Navigation","Sidebar","Toolbar","SearchArea","FilterArea","Form","DataGrid","Table","SummaryPanel","MetricsPanel","Dialog","Drawer","Footer"]
+  },
+
+  "businessStatePreservation": {
+    "enabled": true,
+    "states": ["enabled","disabled","checked","unchecked","selected","unselected","expanded","collapsed","required","optional","valid","invalid","loading","empty","success","warning","error"]
+  },
+
+  "businessFlowInference": {
+    "enabled": true,
+    "patterns": ["CRUD","SearchAndManage","ApprovalWorkflow","Wizard","Dashboard","Reporting","BulkOperation","ImportExport","MasterDetail","SettingsManagement"]
+  },
+
+  "gridAnalysis": {
+    "enabled": true,
+    "detectPrimaryKeyColumn": true,
+    "detectActionColumn": true,
+    "detectStatusColumn": true,
+    "detectEditableColumns": true,
+    "detectSortableColumns": true,
+    "detectFilterableColumns": true,
+    "preserveColumnNames": true
+  },
+
+  "playwrightSelectorExtraction": {
+    "excludeElements": ["icon","decorativeSVG","decorativeImage","layoutContainer","spacer","divider","animationWrapper","pureStylingElement"],
+    "locatorPriority": [
+      "1. page.getByTestId()",
+      "2. page.getByRole() (bao gồm dialog, alert, navigation, banner, main, tooltip, progressbar)",
+      "3. page.getByLabel()",
+      "4. page.getByPlaceholder()",
+      "5. page.locator('#stable-id') (chỉ khi ID ổn định, không dùng ID động)",
+      "6. Container-Based Locator (chaining strategy)",
+      "7. page.getByText() (chỉ dùng cho text tĩnh, không thay đổi theo i18n)"
+    ],
+    "selectorRules": {
+      "stable": true,
+      "readable": true,
+      "maintainable": true,
+      "uniqueMatch": true,
+      "preferUserFacingLocator": true,
+      "avoidLongChains": true,
+      "avoidNth": true,
+      "avoidCssIndex": true,
+      "avoidXPath": true,
+      "preferScopedLocator": true,
+      "preferBusinessMeaning": true,
+      "mainLandmarkAsOptionalScope": true,
+      "forbidSinglePointOfFailureMainLocator": true
+    },
+    "tableStrategy": {"useRowKey": true,"useColumnName": true,"avoidCellIndex": true},
+    "localizationStrategy": {"preferTestId": true,"preferRole": true,"avoidLanguageDependentText": true}
+  },
+
+  "pageObjectInference": {
+    "enabled": true,
+    "groupLocatorsByFeature": true,
+    "generateLogicalSections": true,
+    "identifyReusableComponents": true,
+    "identifyDialogs": true,
+    "identifyTables": true,
+    "identifyForms": true,
+    "pageReadiness": {
+      "requireUrlCheck": true,
+      "requireMultiAnchorReadyCheck": true,
+      "preferredAnchors": [
+        "primaryActionButton",
+        "toolbarKeyButton",
+        "pageHeading",
+        "criticalSidebarLink",
+        "tableOrGridContainer"
+      ],
+      "diagnosticOnFailure": ["url", "title"]
+    }
+  },
+
+  "testabilityAssessment": {
+    "enabled": true,
+    "detectMissingTestIds": true,
+    "detectWeakLocators": true,
+    "detectFlakySelectors": true,
+    "detectDynamicTextRisk": true,
+    "detectDynamicClassRisk": true
+  },
+
+  "outputFormat": {
+    "trustedDomContext": {"groupByRegion": true,"annotateBusinessPurpose": true,"annotateState": true},
+    "playwrightLocators": {"language": "TypeScript","groupByFeature": true,"includeReasoning": true},
+    "pageObjectHints": true,
+    "summaryReport": {
+      "pagePurpose": true,
+      "functionalGroups": true,
+      "businessFlows": true,
+      "criticalActions": true,
+      "criticalAssertions": true,
+      "missingTestIds": true,
+      "flakyRisks": true,
+      "recommendedImprovements": true
+    }
+  }
+} 

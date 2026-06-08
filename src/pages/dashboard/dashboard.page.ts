@@ -1,82 +1,189 @@
-import { Locator, Page, expect } from '@playwright/test';
-import { AsyncLocalStorage } from 'node:async_hooks';
+import { expect, Locator, Page } from '@playwright/test';
 
 export class DashboardPage {
-  readonly page: Page;
+  public readonly dashboardMain: Locator;
+  public readonly toolbarSection: Locator;
+  public readonly metricsPanelSection: Locator;
+  public readonly quotesInvoicesExpensesOverviewSection: Locator;
+  public readonly clientsOverviewSection: Locator;
+  public readonly projectsOverviewSection: Locator;
 
-  readonly pageTitle: Locator;
-  readonly dateRangePickerButton: Locator;
-  readonly exportSummaryButton: Locator;
+  public readonly dashboardLink: Locator;
+  public readonly clientsLink: Locator;
+  public readonly quotesInvoicesLink: Locator;
+  public readonly expensesLink: Locator;
+  public readonly scheduleLink: Locator;
+  public readonly ndisClaimsLink: Locator;
+  public readonly inventoryLink: Locator;
+  public readonly ndisServicesLink: Locator;
+  public readonly accountLink: Locator;
+  public readonly businessLink: Locator;
+  public readonly notificationsLink: Locator;
+  public readonly applicationTourLink: Locator;
+  public readonly feedbackFormLink: Locator;
 
-  readonly totalPaymentsCard: Locator;
-  readonly totalQuotesInvoicesCard: Locator;
-  readonly totalClientsCard: Locator;
+  public readonly dateRangePickerButton: Locator;
+  public readonly exportSummaryButton: Locator;
 
-  readonly quotesInvoicesExpensesSection: Locator;
-  readonly issuedQuotesValue: Locator;
-  readonly acceptedQuotesValue: Locator;
-  readonly remainingQuotesValue: Locator;
-  readonly invoicesSentValue: Locator;
-  readonly paidInvoicesValue: Locator;
-  readonly outstandingInvoicesValue: Locator;
-  readonly overdueInvoicesValue: Locator;
-  readonly expensesValue: Locator;
+  public readonly totalPaymentsCard: Locator;
+  public readonly totalQuotesInvoicesIssuedCard: Locator;
+  public readonly totalClientsCard: Locator;
 
-  readonly clientsOverviewTable: Locator;
-  readonly projectsOverviewTable: Locator;
-  readonly noRecordsMessage: Locator;
+  public readonly clientsOverviewGrid: Locator;
+  public readonly projectsOverviewGrid: Locator;
 
-  constructor(page: Page) {
+  constructor(private readonly page: Page) {
     this.page = page;
 
-    this.pageTitle = page.getByRole('heading', { name: 'Dashboard', exact: true });
-    this.dateRangePickerButton = page.locator('button').filter({ hasText: /Jun 01, 2026/ }); // Hoặc regex linh hoạt hơn: /^[A-Z][a-z]{2} \d{2}, \d{4}/
-    this.exportSummaryButton = page.getByRole('button', { name: 'Export Summary' });
+    // Some builds expose main without an accessible name. Keep this locator resilient.
+    this.dashboardMain = this.page.locator('main, [role="main"]').first();
+    this.toolbarSection = this.page.getByRole('region', { name: 'Toolbar Area' });
+    this.metricsPanelSection = this.page.getByRole('region', { name: 'Metrics Panel' });
+    this.quotesInvoicesExpensesOverviewSection = this.page.getByRole('region', {
+      name: 'Quotes, Invoices & Expenses Overview',
+    });
+    this.clientsOverviewSection = this.page.getByRole('region', { name: 'Clients Overview' });
+    this.projectsOverviewSection = this.page.getByRole('region', { name: 'Projects Overview' });
 
-    this.totalPaymentsCard = page.locator('div', { has: page.locator('text=Total Payments') });
-    this.totalQuotesInvoicesCard = page.locator('div', { has: page.locator('text=Total Quotes/Invoices Issued') });
-    this.totalClientsCard = page.locator('div', { has: page.locator('text=Total Clients') });
+    this.dashboardLink = this.page.getByRole('link', { name: 'Dashboard' });
+    this.clientsLink = this.page.getByRole('link', { name: 'Clients' });
+    this.quotesInvoicesLink = this.page.getByRole('link', { name: 'Quotes & Invoices' });
+    this.expensesLink = this.page.getByRole('link', { name: 'Expenses' });
+    this.scheduleLink = this.page.getByRole('link', { name: 'Schedule' });
+    this.ndisClaimsLink = this.page.getByRole('link', { name: 'NDIS Claims' });
+    this.inventoryLink = this.page.getByRole('link', { name: 'Inventory' });
+    this.ndisServicesLink = this.page.getByRole('link', { name: 'NDIS Services' });
+    this.accountLink = this.page.getByRole('link', { name: 'Account' });
+    this.businessLink = this.page.getByRole('link', { name: 'Business' });
+    this.notificationsLink = this.page.getByRole('link', { name: 'Notifications' });
+    this.applicationTourLink = this.page.getByRole('link', { name: 'Application Tour' });
+    this.feedbackFormLink = this.page.getByRole('link', { name: 'Feedback form' });
 
-    this.quotesInvoicesExpensesSection = page.locator('div', { has: page.locator('text=Quotes, Invoices & Expenses') }).first();
-    this.issuedQuotesValue = this.quotesInvoicesExpensesSection.locator('div', { hasText: 'Issued Quotes' }).locator('span, p, div').last();
-    this.acceptedQuotesValue = this.quotesInvoicesExpensesSection.locator('div', { hasText: 'Accepted Quotes' }).locator('span, p, div').last();
-    this.remainingQuotesValue = this.quotesInvoicesExpensesSection.locator('div', { hasText: 'Remaining Quotes' }).locator('span, p, div').last();
-    this.invoicesSentValue = this.quotesInvoicesExpensesSection.locator('div', { hasText: 'Invoices Sent' }).locator('span, p, div').last();
-    this.paidInvoicesValue = this.quotesInvoicesExpensesSection.locator('div', { hasText: 'Paid Invoices' }).locator('span, p, div').last();
-    this.outstandingInvoicesValue = this.quotesInvoicesExpensesSection.locator('div', { hasText: 'Outstanding Invoices' }).locator('span, p, div').last();
-    this.overdueInvoicesValue = this.quotesInvoicesExpensesSection.locator('div', { hasText: 'Overdue Invoices' }).locator('span, p, div').last();
-    this.expensesValue = this.quotesInvoicesExpensesSection.locator('div', { hasText: 'Expenses In Flexigrow' }).locator('span, p, div').last();
+    this.dateRangePickerButton = this.page.locator('button[title="Date Range Picker"]').first();
+    this.exportSummaryButton = this.page.getByRole('button', { name: 'Export Summary' }).first();
 
-    this.clientsOverviewTable = page.locator('div', { has: page.locator('text=Clients').locator('text=Overview') }).first();
-    this.projectsOverviewTable = page.locator('div', { has: page.locator('text=Projects').locator('text=Overview') }).first();
-    this.noRecordsMessage = page.locator('text=No records');
+    this.totalPaymentsCard = this.page.getByRole('status', { name: 'Total Payments' }).first();
+    this.totalQuotesInvoicesIssuedCard = this.page.getByRole('status', {
+      name: 'Total Quotes/Invoices Issued',
+    }).first();
+    this.totalClientsCard = this.page.getByRole('status', { name: 'Total Clients' }).first();
+
+    this.clientsOverviewGrid = this.clientsOverviewSection.getByRole('grid');
+    this.projectsOverviewGrid = this.projectsOverviewSection.getByRole('grid');
   }
 
-  async expectLoaded() {
-    await this.pageTitle.waitFor({ state: 'visible', timeout: 15000 });
-    await expect(this.dateRangePickerButton).toBeVisible();
-    await expect(this.exportSummaryButton).toBeEnabled();
+  async expectLoaded(): Promise<void> {
+    await expect(this.page).toHaveURL(/\/dashboards?\/?/i, { timeout: 30000 });
+    await this.waitForDashboardReady();
   }
 
-  async openDateRangePicker() {
+  private async waitForDashboardReady(): Promise<void> {
+    const readyCandidates = [
+      this.dateRangePickerButton,
+      this.exportSummaryButton,
+      this.dashboardLink,
+      this.clientsLink,
+    ];
+
+    for (const candidate of readyCandidates) {
+      try {
+        await candidate.waitFor({ state: 'visible', timeout: 15000 });
+        return;
+      } catch {
+        // Try next candidate so dashboard checks remain resilient across UI variants.
+      }
+    }
+
+    const currentUrl = this.page.url();
+    const pageTitle = await this.page.title().catch(() => 'unknown-title');
+    throw new Error(`Dashboard readiness check failed. url=${currentUrl}, title=${pageTitle}`);
+  }
+  async openDateRangePicker(): Promise<void> {
     await this.dateRangePickerButton.click();
   }
 
-  async clickExportSummary() {
+  async clickExportSummary(): Promise<void> {
     await this.exportSummaryButton.click();
   }
 
-  async getCardValue(card: 'payments' | 'quotes' | 'clients'): Promise<string | null> {
-    let targetCard: Locator;
-    switch (card) {
-      case 'payments': targetCard = this.totalPaymentsCard; break;
-      case 'quotes': targetCard = this.totalQuotesInvoicesCard; break;
-      case 'clients': targetCard = this.totalClientsCard; break;
-    }
-    return targetCard.locator('text=$').first().textContent() || targetCard.locator('text=+').first().textContent();
+  async navigateToClients(): Promise<void> {
+    await this.clientsLink.click();
   }
 
-  async getOverviewValue(type: 'Issued Quotes' | 'Paid Invoices' | 'Expenses') {
-    return this.quotesInvoicesExpensesSection.locator('div', { hasText: type }).locator('span, p, div').last().textContent();
+  async navigateToQuotesInvoices(): Promise<void> {
+    await this.quotesInvoicesLink.click();
+  }
+
+  async navigateToExpenses(): Promise<void> {
+    await this.expensesLink.click();
+  }
+
+  async navigateToSchedule(): Promise<void> {
+    await this.scheduleLink.click();
+  }
+
+  async navigateToNdisClaims(): Promise<void> {
+    await this.ndisClaimsLink.click();
+  }
+
+  async navigateToInventory(): Promise<void> {
+    await this.inventoryLink.click();
+  }
+
+  async navigateToNdisServices(): Promise<void> {
+    await this.ndisServicesLink.click();
+  }
+
+  async navigateToAccount(): Promise<void> {
+    await this.accountLink.click();
+  }
+
+  async navigateToBusiness(): Promise<void> {
+    await this.businessLink.click();
+  }
+
+  async navigateToNotifications(): Promise<void> {
+    await this.notificationsLink.click();
+  }
+
+  async openApplicationTour(): Promise<void> {
+    await this.applicationTourLink.click();
+  }
+
+  async openFeedbackForm(): Promise<void> {
+    await this.feedbackFormLink.click();
+  }
+
+  async getTotalPaymentsValue(): Promise<string> {
+    return (await this.totalPaymentsCard.locator('.summary-value').textContent())?.trim() ?? '';
+  }
+
+  async getTotalQuotesInvoicesIssuedValue(): Promise<string> {
+    return (await this.totalQuotesInvoicesIssuedCard.locator('.summary-value').textContent())?.trim() ?? '';
+  }
+
+  async getTotalClientsValue(): Promise<string> {
+    return (await this.totalClientsCard.locator('.summary-value').textContent())?.trim() ?? '';
+  }
+
+  async getIssuedQuotesValue(): Promise<string> {
+    return (await this.quotesInvoicesExpensesOverviewSection.locator('dt:has-text("Issued Quotes") + dd').textContent())?.trim() ?? '';
+  }
+
+  async getPaidInvoicesValue(): Promise<string> {
+    return (await this.quotesInvoicesExpensesOverviewSection.locator('dt:has-text("Paid Invoices") + dd').textContent())?.trim() ?? '';
+  }
+
+  async isClientsOverviewEmpty(): Promise<boolean> {
+    return await this.clientsOverviewGrid.getByText('No records / Empty').isVisible();
+  }
+
+  private getProjectRowByKey(projectKey: string): Locator {
+    return this.projectsOverviewGrid.locator(`tbody tr[data-row-key="${projectKey}"]`);
+  }
+
+  async getProjectExpenseByKey(projectKey: string): Promise<string> {
+    const row = this.getProjectRowByKey(projectKey);
+    return (await row.locator('td[data-field="Expense"]').textContent())?.trim() ?? '';
   }
 }

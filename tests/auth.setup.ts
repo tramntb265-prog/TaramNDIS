@@ -25,9 +25,9 @@ setup('refresh session or login', async ({ browser }) => {
     try {
         await ensureSessionAndPersistAuth(page, context);
     } finally {
-        await page.goto('about:blank', { waitUntil: 'commit' }).catch(() => {});
-        await page.close({ runBeforeUnload: false }).catch(() => {});
-        await context.close().catch(() => {});
+        await page.goto('about:blank', { waitUntil: 'commit' }).catch(() => { });
+        await page.close({ runBeforeUnload: false }).catch(() => { });
+        await context.close().catch(() => { });
         console.log('Worker context killed! Releasing thread for functional tests.');
     }
 });
@@ -35,37 +35,28 @@ setup('refresh session or login', async ({ browser }) => {
 
 async function ensureSessionAndPersistAuth(page: Page, context: BrowserContext): Promise<void> {
     const dashboardPage = new DashboardPage(page);
+    await page.goto(dashboardUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
-    if (fs.existsSync(authFile)) {
-        try {
-            await page.goto(dashboardUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    await Promise.race([
+        page.waitForURL(/.*\/dashboards?.*/i, { timeout: 150000 }),
+        page.waitForURL(/.*\/login.*/i, { timeout: 150000 }),
+    ]);
 
-            //promise.race between dashboardPage url and login url
-            //if login wins, continue login flow
-            await Promise.race([
-                page.waitForURL(/.*\/dashboard.*/, { timeout: 150000 }),
-                page.waitForURL(/.*\/login.*/, { timeout: 150000 }),
-            ]);
-            if (page.url().includes('/dashboard')) {
-                await dashboardPage.expectLoaded();
-                await context.storageState({ path: authFile });
-                console.log('✔ Dashboard loaded from existing session. Auth file refreshed, moving to tests.');
-                return;
-            } else {
-                console.log('Existing session appears to be invalid. Starting login flow to refresh auth file.');
-                await loginAndSaveAuth(page, context);
-                return;
-            }; 
-            
-        } catch (error) {
-            console.log('Session verification timed out or failed. Running fallback login flow.');
-        }
-    }
-
+    if (/\/dashboards?\/?/i.test(page.url())) {
+        await dashboardPage.expectLoaded();
+        await context.storageState({ path: authFile });
+        console.log('✔ Dashboard loaded from existing session. Auth file refreshed, moving to tests.');
+        return;
+    } else {
+        console.log('Session verification timed out or failed. Running fallback login flow. Starting login flow to refresh auth file.'); 
+        await loginAndSaveAuth(page, context);
+        return;
+    };
 }
 
+   
 async function loginAndSaveAuth(page: Page, context: BrowserContext): Promise<void> {
-    
+
     const loginPage = new LoginPage(page);
     console.log('Navigating to login page...');
     await loginPage.expectLoaded()
@@ -80,7 +71,7 @@ async function loginAndSaveAuth(page: Page, context: BrowserContext): Promise<vo
     const otp = await promptOtp();
     await loginPage.otpCodeInput.fill(otp);
     await loginPage.continueButton.click();
-    await page.waitForURL(/.*\/dashboard.*/, { timeout: 15000 });
+    await page.waitForURL(/.*\/dashboards?.*/i, { timeout: 150000 });
     await loginPage.expectLoggedIn();
     await context.storageState({ path: authFile });
     console.log('✔ Dashboard loaded after MFA. Auth file refreshed, moving to tests.');
@@ -92,7 +83,7 @@ async function promptOtp(): Promise<string> {
     if (otpSecret) {
         return generateTotp(otpSecret);
     }
-    
+
     throw new Error('Unable to obtain OTP.');
 }
 

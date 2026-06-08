@@ -1,37 +1,39 @@
 import { test } from '../../../src/fixtures/fixture';
 import { expect } from '@playwright/test';
-import { ClientsManagePage } from '../../../src/pages/clients/clientsManage.page';
 import { AddClientModal } from '../../../src/pages/clients/addClient.modal';
-import { LeftMenuPage } from '../../../src/pages/leftMenu.page';
 
 test.describe('Add Client Modal - Address Finder Verification', () => {
-  let clientsPage: ClientsManagePage;
-  let addClientModal: AddClientModal;
+    let addClientModal: AddClientModal;
 
-  test.beforeEach(async ({ leftMenuPage }) => {
-    await leftMenuPage.navigateToSubmenu('Clients', 'Manage');
+    test.beforeEach(async ({ leftMenuPage, page }) => {
+        addClientModal = new AddClientModal(page);
+        await addClientModal.openFromClientManage(leftMenuPage);
+    });
 
-    await clientsPage.clickAddClient();
-    await expect(addClientModal.modalContainer).toBeVisible();
-  });
+    /*Address finder */
 
-  test('Verify Address Finder displays dropdown suggestions when results are found', async () => {
-    
-  });
+    test('@AddClientModal @ACM001 should open Address Finder popover when select Address input', async () => {
+        await addClientModal.openAddressFinder();
+        await addClientModal.expectAddressFinderOpened();
+    });
 
-  test('Verify Address Finder displays an explicit empty state message when no results are found', async () => {
-    // 1. Type an arbitrary query string that cannot match any real address indices
-    await addClientModal.addressInput.fill('123 4534');
+    test('@AddClientModal @ACM002 should return live updates correctly on-keydown', async () => {
+        const partialAddress = '15 a';
+        let currentSearch = '';
 
-    // 2. Assert that the active list overlay structure is drawn on screen
-    await expect(addClientModal.addressDropdownContainer).toBeVisible();
+        await addClientModal.openAddressFinder();
 
-    // 3. Verify that the unique fallback feedback message node is displayed exactly as intended
-    await expect(addClientModal.addressNoResultsMessage).toBeVisible();
-    await expect(addClientModal.addressNoResultsMessage).toHaveText('No results found.');
+        for (const singleKey of partialAddress.split('')) {
+            currentSearch += singleKey;
+            await addClientModal.typeAddressSearchKeyword(currentSearch);
+            await addClientModal.expectSearchAPISuccess(currentSearch);
+            await addClientModal.expectUIResultContainTrackerKeyword(currentSearch);
+        }
+    });
 
-    // 4. Confirm that actual clickable option rows are completely omitted from the layout
-    const optionCount = await addClientModal.addressDropdownOptions.count();
-    expect(optionCount).toBe(0);
-  });
+    test('@AddClientModal @ACM003 should displays an explicit empty state message when no results are found', async () => {
+        await addClientModal.openAddressFinder();
+        await addClientModal.typeAddressSearchKeyword('zzzzzzzzzzzz');
+        await addClientModal.expectAddressNoResults();
+    });
 });

@@ -8,5 +8,7 @@
     "@playwright/test": "^1.60.0",
     "@types/node": "^25.9.1"
   },
-  "scripts": {}
+  "scripts": {
+    "Addclient": "playwright test -g @AddClientModal --project=chromium-standard --workers=1"
+  }
 }

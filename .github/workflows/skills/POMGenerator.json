@@ -1,0 +1,119 @@
+{
+  "skill_name": "Playwright_TypeScript_POM_Generator",
+  "version": "1.4.1",
+  "author": "Senior QA Automation Architect",
+  "description": "Generates a standard Playwright TypeScript Page Object Model (POM) from a simplified DOM and provided selectors.",
+  "requirements": {
+    "input": [
+      "Simplified DOM (preserving testId, role, label, and placeholder attributes)",
+      "List of existing selectors",
+      "BasePage or Shared Components context (if available)"
+    ],
+    "output": "Return ONLY the raw, clean TypeScript source code as Plain Text from the very first line to the last line. Strictly DO NOT wrap the code in markdown code blocks (```), do not include any conversational explanations, notes, or markdown formatting outside the code. Avoid verbose comments; only brief inline technical comments are allowed when necessary for complex locator logic."
+  },
+  "rules": {
+    "architecture": [
+      "Export ONLY one central Page Object class: export class XxxPage",
+      "Allowed to declare supportive TypeScript Interfaces/Types (e.g., FormData) at the top of the file for method parameters.",
+      "The constructor must strictly accept: constructor(private readonly page: Page)",
+      "The file must be strictly isolated: contain only Locators, navigation methods, UI interaction methods, and Screen State Validations.",
+      "Strictly DO NOT include test cases, mock data, fixtures, standalone utility classes, or separate helper classes.",
+      "Static/fixed locators must be declared as 'public readonly' properties and fully initialized inside the constructor.",
+      "Do not duplicate shared logic if a BasePage or Shared Component is already available in the context."
+    ],
+    "locator_visibility": [
+      "All static Locator properties must be declared as 'public readonly' to expose them to the test layer when needed.",
+      "Do not use 'private' or 'protected' modifiers for static Locator properties.",
+      "Dynamic locator methods that accept arguments (e.g., table rows) are allowed to be 'private' if only used internally within the class."
+    ],
+    "method_visibility": [
+      "Internal helper methods (e.g., waiting for loading, resolving rows) must be declared as 'private'.",
+      "Atomic Actions and Business Actions must be declared as 'public async'.",
+      "Do not use 'protected' modifiers for any methods."
+    ],
+    "naming_convention": [
+      "Input       => xxxInput",
+      "Textarea    => xxxTextarea",
+      "Button      => xxxButton",
+      "Dropdown    => xxxDropdown",
+      "Checkbox    => xxxCheckbox",
+      "Radio       => xxxRadio",
+      "Link        => xxxLink",
+      "Tab         => xxxTab",
+      "Table       => xxxTable",
+      "Grid        => xxxGrid",
+      "Row         => xxxRow",
+      "Dialog      => xxxDialog",
+      "Modal       => xxxModal",
+      "Label       => xxxLabel",
+      "Message     => xxxMessage",
+      "Spinner     => xxxSpinner",
+      "Toast       => xxxToast",
+      "Icon        => xxxIcon",
+      "Container/Section wrapper => xxxContainer or xxxSection",
+      "Static static text        => xxxText",
+      "EXCEPTION: Dynamic elements that accept parameters must not be declared as static properties; they must use business methods prefixed with 'get', such as getXxxRow(param), getXxxOption(param), getXxxItem(param)."
+    ],
+    "locator_strategy": [
+      "Strict locator priority order: getByTestId → getByRole → getByLabel → getByPlaceholder → semantic CSS → provided selector.",
+      "If a semantic locator is available, always prioritize it over others.",
+      "Do not select a locator simply because it is shorter or because it matches the provided selector list.",
+      "Only use the provided selector when no suitable testId, role, label, or placeholder exists in the DOM.",
+      "When multiple valid locators are available, select the most stable one following the defined priority.",
+      "Strictly FORBIDDEN: Absolute XPath, layout-dependent CSS selectors (e.g., long div > div chains), and dynamic index methods (.nth(), .first(), .last()) unless no other stable alternative exists.",
+      "Discard locators based on placeholders or text that are prone to changing if a more stable semantic alternative is available."
+    ],
+    "action_methods": [
+      "Prioritize a clean separation between Atomic Actions and Business Actions.",
+      "Atomic Actions should only be created when the element is highly reusable, has specific internal logic, or requires individual validation.",
+      "Business Actions must reuse existing Atomic Actions rather than rewriting raw UI interactions.",
+      "Do not duplicate UI interaction logic across multiple methods.",
+      "All input data must be passed via method parameters; hard-coding test data is strictly forbidden."
+    ],
+    "form_strategy": [
+      "If the form contains fewer than 5 fields, primitive parameters are acceptable.",
+      "If the form contains 5 or more fields, you must use an object parameter (e.g., data: ClientFormData) and define the corresponding interface at the top of the file."
+    ],
+    "waiting_strategy": [
+      "Leverage Playwright's default Auto-wait mechanism. Do not add redundant expect(locator).toBeVisible() statements before click() or fill() operations.",
+      "Only introduce extra expect or wait conditions when handling asynchronous components (e.g., Modals, Dialogs, dynamic Dropdowns/Grids, Toasts, Spinners).",
+      "If a Spinner or Loading Overlay is present in the DOM, you must implement a private method: private async waitForLoadingCompleted() using expect(spinner).toBeHidden(), and call it after actions that trigger data loading.",
+      "If a Toast or Message is present, implement a suitable helper to wait for its appearance/disappearance before proceeding.",
+      "Strictly FORBIDDEN: waitForTimeout(), sleep(), or any hard-coded delays."
+    ],
+    "complex_structures": [
+      "Navigation must use relative paths (e.g., /login); absolute URLs are strictly forbidden.",
+      "Modals/Dialogs must have isolated locators and dedicated action methods (e.g., open, close, confirm).",
+      "Tables/Grids must implement the Row-Key Pattern using a helper method: private getRowByKey(key: string): Locator.",
+      "All interactions inside a row (such as Edit, Delete, View buttons) must be scoped from that Row Locator; row index must not be used.",
+      "Business Actions interacting with tables/grids must reuse the getRowByKey() method."
+    ],
+    "component_reuse": [
+      "If the input indicates the presence of Shared Components, prioritize reusing them over generating new locators.",
+      "Do not duplicate locators for common elements like Left Menu, Header, Footer, Pagination, Search Filters, or global Toasts.",
+      "If a component already exists in the framework, inject or utilize it through the constructor."
+    ],
+    "framework_awareness": [
+      "If a BasePage is provided, prioritize extending it (e.g., export class XxxPage extends BasePage).",
+      "If the BasePage already contains helper methods for loading or navigation, do not redefine or duplicate them.",
+      "If a Shared Component is already present, do not regenerate equivalent locators or helpers."
+    ],
+    "assertions": [
+      "Only allow assertions that serve Screen State Validation (e.g., toBeVisible, toBeHidden, toHaveText) to support the next step in the flow.",
+      "Strictly FORBIDDEN: Checking test case business logic or final data outcomes (Business Assertions) inside the Page Object class."
+    ],
+    "imports": [
+      "Standard structure: import { Page, Locator, expect } from '@playwright/test';",
+      "Only import modules that are actively declared and used in the code; redundant imports are strictly forbidden.",
+      "Do not import Browser, BrowserContext, chromium, firefox, webkit, or test if they are not used. Do not import directly from playwright-core."
+    ]
+  },
+  "workflow": {
+    "step_1": "Analyze the comprehensive DOM structure, provided selectors, and framework/BasePage context.",
+    "step_2": "Declare the Import block and any supporting Interfaces/Types for Form Objects if required.",
+    "step_3": "Define the Class structure (extending BasePage if requested) and initialize all public readonly Locator properties inside the Constructor.",
+    "step_4": "Build private helper methods for asynchronous UI handling (waitForLoadingCompleted) and Table scoping (getRowByKey).",
+    "step_5": "Write the Atomic Actions layer for reusable individual UI components.",
+    "step_6": "Finalize the Business Actions layer by chaining Atomic Actions and integrating corresponding asynchronous wait mechanisms."
+  }
+}

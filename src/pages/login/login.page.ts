@@ -57,7 +57,7 @@ export class LoginPage {
     }
 
     async expectLoggedIn(): Promise<void> {
-        await expect(this.page).toHaveURL('https://dev.flexigrow.app/premium-funding/dashboards/', { timeout: 100000 });
+        await expect(this.page).toHaveURL('https://dev.flexigrow.app/dashboards/', { timeout: 100000 });
         const dashboardPage = new DashboardPage(this.page);
         await dashboardPage.expectLoaded();
     }
